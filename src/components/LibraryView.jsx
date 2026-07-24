@@ -44,8 +44,9 @@ export default function LibraryView({
         <p className="eyebrow">Systems curriculum</p>
         <h1>Learn the machine from first principles.</h1>
         <p>
-          Begin with C and hardware foundations. Move through Linux, electronics,
-          embedded systems, STM32F446RE, RTOS, and the DSA patterns that matter.
+          Start with C and the engineering toolbox. Build fluency in C++, DSA,
+          architecture, and Linux before networks, electronics, embedded systems,
+          STM32F446RE, and RTOS.
         </p>
       </header>
 

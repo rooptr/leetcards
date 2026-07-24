@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Leetcards Safe Capture</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <main>
+      <header>
+        <img src="icon.svg" alt="" aria-hidden="true" />
+        <div>
+          <strong>Leetcards</strong>
+          <small>Safe capture</small>
+        </div>
+      </header>
+
+      <p>
+        Open a solved LeetCode problem, then capture its public metadata.
+        No account, cookies, or notes are read.
+      </p>
+
+      <button id="capture" type="button">Capture this problem</button>
+      <output id="status" aria-live="polite"></output>
+    </main>
+    <script src="popup.js"></script>
+  </body>
+</html>

@@ -463,16 +463,19 @@ test('pointer and window simulations encode positions and bounds rather than onl
 
 test('systems categories and lessons follow the recommended learning order', () => {
   const sectionIds = curriculum.map((item) => item.id);
-  for (const [before, after] of [
-    ['c', 'architecture'],
-    ['architecture', 'os-linux'],
-    ['os-linux', 'electronics'],
-    ['electronics', 'embedded'],
-    ['embedded', 'stm32'],
-    ['stm32', 'rtos'],
-  ]) {
-    assert.ok(sectionIds.indexOf(before) < sectionIds.indexOf(after), `${before} must precede ${after}`);
-  }
+  assert.deepEqual(sectionIds, [
+    'c',
+    'engineering',
+    'cpp',
+    'dsa',
+    'architecture',
+    'os-linux',
+    'networking',
+    'electronics',
+    'embedded',
+    'stm32',
+    'rtos',
+  ]);
 
   const ids = new Set(allTopics.map((topic) => topic.id));
   for (const id of [

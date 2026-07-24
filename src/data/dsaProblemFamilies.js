@@ -19,6 +19,27 @@ bool anagram = std::ranges::all_of(count, [](int x) { return x == 0; });`,
     if (s[left] != s[right]) return false;
   return true;
 }`,
+  twoPointers: `bool has_pair_sum(std::span<const int> values, int target) {
+  std::size_t left = 0;
+  std::size_t right = values.size();
+  while (left < right) {
+    const int sum = values[left] + values[right - 1];
+    if (sum == target) return true;
+    if (sum < target) ++left;
+    else --right;
+  }
+  return false;
+}`,
+  sliding: `long long max_fixed_window_sum(std::span<const int> values, std::size_t width) {
+  if (width == 0 || width > values.size()) throw std::invalid_argument("width");
+  long long window = std::accumulate(values.begin(), values.begin() + width, 0LL);
+  long long best = window;
+  for (std::size_t right = width; right < values.size(); ++right) {
+    window += values[right] - values[right - width];
+    best = std::max(best, window);
+  }
+  return best;
+}`,
   longestSubstring: `std::array<int, 256> last;
 last.fill(-1);
 int left = 0, best = 0;
@@ -195,6 +216,40 @@ export const problemFamilySpecs = {
         frame('The c characters match, leaving only the center.', [...'racecar'], { pointers: { left: 3, right: 3 }, discarded: [0, 1, 2, 4, 5, 6], active: ['e'] }),
         frame('The pointers meet; every mirrored pair has been checked.', [...'racecar'], { pointers: { left: 3, right: 3 }, active: ['e'] }),
         frame('The final result is palindrome=true with O(1) extra state.', ['palindrome', 'true'], { active: ['true'] }),
+      ],
+    },
+  },
+  'dsa-two-pointers': {
+    summary: 'Two pointers turn sorted order into a proof: one comparison discards every pair attached to the pointer that moves.',
+    invariant: 'If a valid pair still exists, it lies inside the closed interval from left to right; every outside pair has been disproved by sorted order.',
+    prediction: 'When the current sum is too small, which pointer can move without skipping a possible answer?',
+    guidance: ['the input is sorted and the question asks about a pair, range, or mirrored positions', 'moving one boundary discards many impossible candidates at once', 'the input is unsorted and original indexes must be preserved', 'O(n) time and O(1) extra space after sorting is available', code.twoPointers],
+    visual: {
+      kind: 'pointer-array',
+      frames: [
+        frame('Target 9: place left at 1 and right at 11 in the sorted array.', [1, 2, 4, 7, 11], { pointers: { left: 0, right: 4 }, active: [1, 11] }),
+        frame('1 + 11 = 12 is too large; every pair using 11 with a later left value is also too large.', [1, 2, 4, 7, 11], { pointers: { left: 0, right: 4 }, active: [1, 11] }),
+        frame('Move only right to 7. The possible interval is now indexes 0 through 3.', [1, 2, 4, 7, 11], { pointers: { left: 0, right: 3 }, discarded: [4], active: [1, 7] }),
+        frame('1 + 7 = 8 is too small; every pair using 1 with an earlier right value is smaller still.', [1, 2, 4, 7, 11], { pointers: { left: 0, right: 3 }, discarded: [4], active: [1, 7] }),
+        frame('Move only left to 2. The candidate pair is now 2 + 7.', [1, 2, 4, 7, 11], { pointers: { left: 1, right: 3 }, discarded: [0, 4], active: [2, 7] }),
+        frame('The final answer is 2 + 7 = 9, found without checking the discarded pairs.', [1, 2, 4, 7, 11], { pointers: { left: 1, right: 3 }, discarded: [0, 4], active: [2, 7] }),
+      ],
+    },
+  },
+  'dsa-sliding': {
+    summary: 'A sliding window reuses the state of one contiguous range, replacing a full rescan with one leaving update and one entering update.',
+    invariant: 'The maintained sum equals exactly the values inside the current width-three window, and best is the largest complete window seen so far.',
+    prediction: 'When the right edge advances, which value enters and which single value must leave?',
+    guidance: ['the question repeats the same calculation over contiguous ranges', 'the next candidate differs from the current one only at its boundaries', 'removing a value cannot be expressed as a safe inverse update', 'O(n) time and O(1) extra space for a fixed-width aggregate', code.sliding],
+    visual: {
+      kind: 'window',
+      frames: [
+        frame('For width 3, begin with 2 + 1 + 5 = 8.', [2, 1, 5, 1, 3, 2], { pointers: { left: 0, right: 2 }, window: [0, 2], active: [2, 1, 5] }),
+        frame('Record best = 8 before moving either boundary.', [2, 1, 5, 1, 3, 2], { pointers: { left: 0, right: 2 }, window: [0, 2], active: [2, 1, 5] }),
+        frame('Slide once: 2 leaves and the next 1 enters, so the sum becomes 7.', [2, 1, 5, 1, 3, 2], { pointers: { left: 1, right: 3 }, window: [1, 3], leaving: 0, entering: 3, discarded: [0], active: [1, 5] }),
+        frame('Slide again: the old 1 leaves and 3 enters, so the sum becomes 9.', [2, 1, 5, 1, 3, 2], { pointers: { left: 2, right: 4 }, window: [2, 4], leaving: 1, entering: 4, discarded: [0, 1], active: [5, 1, 3] }),
+        frame('Update best to 9; the aggregate still describes exactly the highlighted range.', [2, 1, 5, 1, 3, 2], { pointers: { left: 2, right: 4 }, window: [2, 4], discarded: [0, 1], active: [5, 1, 3] }),
+        frame('The final slide sums to 6, so the maximum width-three sum remains 9.', [2, 1, 5, 1, 3, 2], { pointers: { left: 3, right: 5 }, window: [3, 5], discarded: [0, 1, 2], active: [1, 3, 2] }),
       ],
     },
   },

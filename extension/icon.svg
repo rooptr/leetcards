@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title description">
+  <title id="title">Leetcards mark</title>
+  <desc id="description">Two overlapping study cards with a small circuit node.</desc>
+  <rect width="512" height="512" rx="112" fill="#f5f1e9"/>
+  <rect x="112" y="126" width="260" height="184" rx="32" fill="#f5f1e9" stroke="#24231f" stroke-width="18"/>
+  <rect x="140" y="202" width="260" height="184" rx="32" fill="#f5f1e9" stroke="#24231f" stroke-width="18"/>
+  <path d="M196 277h112" fill="none" stroke="#24231f" stroke-width="18" stroke-linecap="round"/>
+  <circle cx="342" cy="277" r="15" fill="#a7472f"/>
+</svg>

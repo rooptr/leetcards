@@ -7,7 +7,8 @@ import { fileURLToPath } from 'node:url';
 const projectRoot = fileURLToPath(new URL('..', import.meta.url));
 const ignoredDirectories = new Set(['.git', 'dist', 'node_modules', 'coverage']);
 const textExtensions = new Set([
-  '.css', '.html', '.js', '.json', '.jsx', '.md', '.mjs', '.txt', '.yml', '.yaml',
+  '.css', '.html', '.js', '.json', '.jsx', '.md', '.mjs', '.txt', '.webmanifest',
+  '.yml', '.yaml',
 ]);
 
 const extensionOf = (path) => {
@@ -99,8 +100,11 @@ test('browser policy blocks executable third-party content and data submission',
   assert.match(html, /frame-src 'none'/);
   assert.match(html, /form-action 'none'/);
   assert.match(html, /base-uri 'self'/);
+  assert.match(html, /worker-src 'self'/);
+  assert.doesNotMatch(html, /worker-src 'none'/);
   assert.doesNotMatch(html, /script-src\s+[^;]*'unsafe-inline'/);
   assert.match(html, /name="referrer" content="no-referrer"/);
+  assert.match(html, /rel="manifest" href="\/leetcards\/manifest\.webmanifest"/);
   assert.doesNotMatch(html, /<script[^>]+src=["']https?:\/\//i);
 });
 

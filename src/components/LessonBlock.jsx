@@ -20,7 +20,7 @@ function RecallBlock({ block }) {
   );
 }
 
-function CodePairBlock({ block }) {
+export function CodePairBlock({ block, className = '' }) {
   const [activeId, setActiveId] = useState(block.variants[0].id);
   const [copied, setCopied] = useState(false);
   const active = block.variants.find((variant) => variant.id === activeId) ?? block.variants[0];
@@ -33,7 +33,7 @@ function CodePairBlock({ block }) {
   };
 
   return (
-    <section className="lesson-block code-block code-pair-block">
+    <section className={`lesson-block code-block code-pair-block ${className}`.trim()}>
       <p className="eyebrow">Implementation comparison</p>
       <h2>{block.heading}</h2>
       {block.note && <p className="code-pair-note">{block.note}</p>}

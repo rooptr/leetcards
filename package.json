@@ -5,7 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "node scripts/build.mjs",
+    "icons:pwa": "node scripts/generate-pwa-icons.mjs",
+    "preview": "vite preview",
     "test": "node --test",
     "verify:college-dsa": "node scripts/verify-college-dsa.mjs"
   },

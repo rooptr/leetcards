@@ -1,0 +1,29 @@
+{
+  "manifest_version": 3,
+  "name": "Leetcards Safe Capture",
+  "version": "1.0.0",
+  "description": "Capture the current LeetCode problem after you solve it and open the matching Leetcards explanation.",
+  "action": {
+    "default_title": "Capture for Leetcards",
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icon-16.png",
+      "32": "icon-32.png",
+      "48": "icon-48.png",
+      "128": "icon-128.png"
+    }
+  },
+  "icons": {
+    "16": "icon-16.png",
+    "32": "icon-32.png",
+    "48": "icon-48.png",
+    "128": "icon-128.png"
+  },
+  "permissions": [
+    "activeTab",
+    "scripting"
+  ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'"
+  }
+}

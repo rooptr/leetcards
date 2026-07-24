@@ -327,16 +327,16 @@ const curriculumUnordered = [
 
 const sectionOrder = [
   'c',
+  'engineering',
   'cpp',
+  'dsa',
   'architecture',
   'os-linux',
   'networking',
-  'engineering',
   'electronics',
   'embedded',
   'stm32',
   'rtos',
-  'dsa',
 ];
 
 export const curriculum = [...curriculumUnordered].sort(
