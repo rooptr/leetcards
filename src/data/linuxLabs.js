@@ -1211,6 +1211,7 @@ int main(void) {
     stateDiagram: 'parse name/number -> block mask -> self-signal becomes pending -> inspect pending set -> restore mask -> handler marks delivered',
     source: `#define _POSIX_C_SOURCE 200809L
 #include <errno.h>
+#include <limits.h>
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -1237,8 +1238,13 @@ static int parse_signal(const char *text) {
     char *end = NULL;
     errno = 0;
     long value = strtol(text, &end, 10);
-    if (errno == 0 && end != text && *end == '\\0' && value > 0 && value < NSIG) {
-        return (int)value;
+    if (errno == 0 && end != text && *end == '\\0' &&
+        value > 0 && value <= INT_MAX) {
+        sigset_t candidate;
+        if (sigemptyset(&candidate) == 0 &&
+            sigaddset(&candidate, (int)value) == 0) {
+            return (int)value;
+        }
     }
     return -1;
 }
