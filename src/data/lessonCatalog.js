@@ -53,6 +53,14 @@ const asCpp20PosixSource = (source) => source
     'struct task *task = calloc(1, sizeof *task);',
     'struct task *task = (struct task *)calloc(1, sizeof *task);',
   )
+  .replace('char *stage0[] =', 'const char *stage0[] =')
+  .replace('char *stage1[] =', 'const char *stage1[] =')
+  .replace('char *stage2[] =', 'const char *stage2[] =')
+  .replace('char **commands[] =', 'const char **commands[] =')
+  .replace(
+    'execvp(commands[stage][0], commands[stage]);',
+    'execvp(commands[stage][0], const_cast<char *const *>(commands[stage]));',
+  )
   .replace(
     'static void *allocate_matrix(size_t rows, size_t columns)',
     'static int64_t *allocate_matrix(size_t rows, size_t columns)',
