@@ -249,7 +249,7 @@ int main(void) {
     if (fcntl(fd, F_SETFL, status_flags | O_APPEND) < 0) fail("F_SETFL");
 
     struct flock lock = {
-        .l_type = F_WRLCK, .l_whence = SEEK_SET, .l_start = 0, .l_len = 1
+        .l_type = F_WRLCK, .l_whence = SEEK_SET, .l_start = 0, .l_len = 1, .l_pid = 0
     };
     if (fcntl(fd, F_SETLK, &lock) < 0) fail("F_SETLK");
 
