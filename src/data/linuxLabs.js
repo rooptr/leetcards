@@ -1588,15 +1588,18 @@ static int dispatch(char *request, char *reply, size_t reply_size) {
 static int run_server(int port) {
     int fd = socket(AF_INET, SOCK_DGRAM, 0);
     if (fd < 0) { perror("socket"); return EXIT_FAILURE; }
-    struct sockaddr_in local = {
-        .sin_family = AF_INET,
-        .sin_port = htons((uint16_t)port),
-        .sin_addr.s_addr = htonl(INADDR_LOOPBACK)
-    };
+    struct sockaddr_in local;
+    memset(&local, 0, sizeof local);
+    local.sin_family = AF_INET;
+    local.sin_port = htons((uint16_t)port);
+    local.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
     if (bind(fd, (struct sockaddr *)&local, sizeof local) < 0) {
         perror("bind"); return EXIT_FAILURE;
     }
-    struct pollfd watch = { .fd = fd, .events = POLLIN };
+    struct pollfd watch;
+    memset(&watch, 0, sizeof watch);
+    watch.fd = fd;
+    watch.events = POLLIN;
     int ready;
     do ready = poll(&watch, 1, 3000); while (ready < 0 && errno == EINTR);
     if (ready <= 0) { fprintf(stderr, "server timeout\\n"); return EXIT_FAILURE; }
@@ -1625,17 +1628,20 @@ static int run_client(int port, const char *request_id, const char *command, con
     if (length < 0 || (size_t)length >= sizeof request) return EXIT_FAILURE;
     int fd = socket(AF_INET, SOCK_DGRAM, 0);
     if (fd < 0) { perror("socket"); return EXIT_FAILURE; }
-    struct sockaddr_in server = {
-        .sin_family = AF_INET,
-        .sin_port = htons((uint16_t)port),
-        .sin_addr.s_addr = htonl(INADDR_LOOPBACK)
-    };
+    struct sockaddr_in server;
+    memset(&server, 0, sizeof server);
+    server.sin_family = AF_INET;
+    server.sin_port = htons((uint16_t)port);
+    server.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
     for (int attempt = 0; attempt < 2; attempt++) {
         if (sendto(fd, request, (size_t)length, 0,
                    (struct sockaddr *)&server, sizeof server) < 0) {
             perror("sendto"); return EXIT_FAILURE;
         }
-        struct pollfd watch = { .fd = fd, .events = POLLIN };
+        struct pollfd watch;
+        memset(&watch, 0, sizeof watch);
+        watch.fd = fd;
+        watch.events = POLLIN;
         int ready;
         do ready = poll(&watch, 1, 500); while (ready < 0 && errno == EINTR);
         if (ready > 0) {
