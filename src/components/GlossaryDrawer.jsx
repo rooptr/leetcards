@@ -2,6 +2,14 @@ import { useEffect, useRef } from 'react';
 
 export default function GlossaryDrawer({ topic, lesson, open, onClose, triggerRef }) {
   const drawerRef = useRef(null);
+  const conceptItems = lesson?.blocks?.find((block) => block.type === 'concepts')?.items;
+  const definition = lesson?.blocks?.find((block) => block.type === 'definition')?.body;
+  const glossaryItems = conceptItems?.length
+    ? conceptItems
+    : [{
+      term: topic?.title ?? 'Definition',
+      definition: definition ?? lesson?.summary ?? '',
+    }];
 
   useEffect(() => {
     if (!open) return undefined;
@@ -54,10 +62,10 @@ export default function GlossaryDrawer({ topic, lesson, open, onClose, triggerRe
         </div>
         <p className="drawer-summary">{lesson?.summary}</p>
         <dl>
-          {topic?.keywords.map((keyword) => (
-            <div key={keyword}>
-              <dt>{keyword}</dt>
-              <dd>Read this term in the context of {topic.title.toLowerCase()}; follow where its state appears in the lesson trace.</dd>
+          {glossaryItems.map((item) => (
+            <div key={item.term}>
+              <dt>{item.term}</dt>
+              <dd>{item.definition}</dd>
             </div>
           ))}
         </dl>

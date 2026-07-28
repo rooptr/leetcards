@@ -91,7 +91,7 @@ test('A19 is a localhost-only UDP allowlist without shell execution', () => {
 });
 
 test('A01-A22 are searchable deep lessons in the Linux category', () => {
-  const linuxLabTopics = allTopics.filter((topic) => topic.group === 'Linux C Labs');
+  const linuxLabTopics = allTopics.filter((topic) => topic.group === 'Linux Systems Programming Labs');
   assert.equal(linuxLabTopics.length, 22);
 
   for (const lab of linuxLabs) {
@@ -115,7 +115,7 @@ test('A01-A22 are searchable deep lessons in the Linux category', () => {
   }
 });
 
-test('all Linux lab sources compile warning-clean with their documented flags when GCC runs on Linux', {
+test('all Linux lab C and C++ sources compile warning-clean when GNU compilers run on Linux', {
   skip: process.platform !== 'linux' ? 'Linux GCC verification is unavailable on this host' : false,
 }, async () => {
   const directory = await mkdtemp(join(tmpdir(), 'leetcards-linux-labs-'));
@@ -131,9 +131,34 @@ test('all Linux lab sources compile warning-clean with their documented flags wh
       assert.equal(
         result.status,
         0,
-        `${lab.id} failed to compile:\n${result.stdout}${result.stderr}`,
+        `${lab.id} C source failed to compile:\n${result.stdout}${result.stderr}`,
       );
-      assert.equal(result.stderr, '', `${lab.id} emitted compiler diagnostics:\n${result.stderr}`);
+      assert.equal(result.stderr, '', `${lab.id} C source emitted diagnostics:\n${result.stderr}`);
+
+      const lesson = getLessonForTopic(`linux-${lab.id.toLowerCase()}`);
+      const pair = lesson.blocks.find((block) => block.type === 'code-pair');
+      const cppSource = pair.variants.find((variant) => variant.id === 'cpp').code;
+      const cppSourcePath = join(directory, `${lab.id.toLowerCase()}.cpp`);
+      const cppOutputPath = join(directory, `${lab.id.toLowerCase()}-cpp`);
+      await writeFile(cppSourcePath, cppSource);
+      const cppFlags = lab.buildFlags.map((flag) => (
+        flag === '-std=c17' ? '-std=c++20' : flag
+      ));
+      const cppResult = spawnSync(
+        'g++',
+        [...cppFlags, cppSourcePath, '-o', cppOutputPath],
+        { encoding: 'utf8' },
+      );
+      assert.equal(
+        cppResult.status,
+        0,
+        `${lab.id} C++ source failed to compile:\n${cppResult.stdout}${cppResult.stderr}`,
+      );
+      assert.equal(
+        cppResult.stderr,
+        '',
+        `${lab.id} C++ source emitted diagnostics:\n${cppResult.stderr}`,
+      );
     }
   } finally {
     await rm(directory, { recursive: true, force: true });

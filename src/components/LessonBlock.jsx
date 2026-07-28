@@ -112,6 +112,38 @@ export default function LessonBlock({ block }) {
     );
   }
 
+  if (block.type === 'concepts') {
+    return (
+      <section className="lesson-block concept-block">
+        <p className="eyebrow">Concept dictionary</p>
+        <h2>{block.heading}</h2>
+        <dl className="concept-list">
+          {block.items.map((item) => (
+            <div className="concept-entry" key={item.term}>
+              <dt>{item.term}</dt>
+              <dd>
+                <p>{item.definition}</p>
+                <small><span>Concrete check</span> {item.example}</small>
+              </dd>
+            </div>
+          ))}
+        </dl>
+      </section>
+    );
+  }
+
+  if (block.type === 'source-prompts') {
+    return (
+      <section className="lesson-block source-prompts-block">
+        <p className="eyebrow">Coverage ledger</p>
+        <h2>{block.heading}</h2>
+        <ul className="source-prompt-list">
+          {block.items.map((item) => <li key={item}>{item}</li>)}
+        </ul>
+      </section>
+    );
+  }
+
   if (block.type === 'prediction') {
     return (
       <aside className="prediction-block">
@@ -123,6 +155,7 @@ export default function LessonBlock({ block }) {
 
   return (
     <section className={`lesson-block lesson-block-${block.type}`}>
+      {block.type === 'definition' && <p className="eyebrow">Definition</p>}
       {block.type === 'failure' && <p className="eyebrow">Failure mode</p>}
       {block.type === 'practice' && <p className="eyebrow">Try it yourself</p>}
       {block.type === 'application' && <p className="eyebrow">Real system</p>}

@@ -9,6 +9,9 @@ import { dsaVisuals } from '../src/data/dsaVisuals.js';
 import { linuxMechanismSpecs } from '../src/data/linuxMechanisms.js';
 import { collegeMcuLabs, collegeMcuCoverage } from '../src/data/collegeMcuLabs.js';
 import { collegeDsaLabs, collegeDsaCoverage } from '../src/data/collegeDsaLabs.js';
+import { cppLessonProfiles } from '../src/data/cppLessonProfiles.js';
+import { cppConcepts } from '../src/data/cppConcepts.js';
+import { linuxCppGuidance } from '../src/data/linuxCppGuidance.js';
 
 test('curriculum exposes every required learning area', () => {
   const titles = new Set(curriculum.map((section) => section.title));
@@ -152,6 +155,179 @@ test('every topic resolves to one substantive variable-depth lesson', () => {
   }
 });
 
+test('every lesson starts definition-first and then grounds the idea in a real system', () => {
+  const vagueDefinitionPatterns = [
+    /\bthis topic\b/i,
+    /\bthis feature\b/i,
+    /\bthis mechanism\b/i,
+    /\blearn about\b/i,
+    /\bthe useful idea\b/i,
+    /\bprovides? a way\b/i,
+  ];
+  const vagueApplicationPatterns = [
+    /\breal systems\b/i,
+    /\bproduction systems\b/i,
+    /\buses? this (?:topic|feature|mechanism|practice)\b/i,
+    /\brel(?:y|ies) on this\b/i,
+  ];
+
+  for (const lesson of lessons) {
+    const definitions = lesson.blocks.filter((block) => block.type === 'definition');
+    const definition = definitions[0];
+    const application = lesson.blocks[1];
+
+    assert.equal(definitions.length, 1, `${lesson.topicId} must have one definition`);
+    assert.equal(lesson.blocks[0], definition, `${lesson.topicId} definition is not first`);
+    assert.equal(definition.heading, 'What it is', `${lesson.topicId} definition heading drifted`);
+    assert.ok(definition.body.length >= 80, `${lesson.topicId} definition is too thin`);
+    assert.equal(lesson.summary, definition.body, `${lesson.topicId} hero summary differs from its definition`);
+    assert.equal(application.type, 'application', `${lesson.topicId} has no real-system grounding after its definition`);
+    assert.ok(application.body.length >= 100, `${lesson.topicId} real-system example is too thin`);
+
+    for (const pattern of vagueDefinitionPatterns) {
+      assert.doesNotMatch(definition.body, pattern, `${lesson.topicId} has a placeholder definition`);
+    }
+    for (const pattern of vagueApplicationPatterns) {
+      assert.doesNotMatch(application.body, pattern, `${lesson.topicId} has a placeholder application`);
+    }
+
+    const duplicateExplanation = lesson.blocks.slice(1).find((block) => (
+      block.type === 'prose' && block.body?.trim() === definition.body.trim()
+    ));
+    assert.equal(duplicateExplanation, undefined, `${lesson.topicId} repeats its definition as explanation`);
+  }
+});
+
+test('the reader presents the definition once instead of repeating it in the hero', async () => {
+  const source = await readFile(new URL('../src/components/LessonReader.jsx', import.meta.url), 'utf8');
+  assert.equal(source.includes('<p>{lesson.summary}</p>'), false);
+  assert.ok(source.includes('lesson.blocks.map'), 'the explicit definition blocks are not rendered');
+});
+
+test('the glossary uses authored concept definitions instead of keyword placeholders', async () => {
+  const source = await readFile(new URL('../src/components/GlossaryDrawer.jsx', import.meta.url), 'utf8');
+  assert.ok(source.includes("block.type === 'concepts'"));
+  assert.ok(source.includes("block.type === 'definition'"));
+  assert.ok(source.includes('{item.definition}'));
+  assert.equal(source.includes('Read this term in the context of'), false);
+});
+
+test('standard and deep lessons explain a complete case instead of stopping at vocabulary', () => {
+  for (const lesson of lessons.filter((item) => item.depth !== 'brief')) {
+    const types = new Set(lesson.blocks.map((block) => block.type));
+    const hasTrace = types.has('steps')
+      || lesson.blocks.some((block) => block.type === 'visual' && block.frames?.length >= 2);
+
+    assert.ok(hasTrace, `${lesson.topicId} has no ordered mechanism or state trace`);
+    assert.ok(types.has('practice'), `${lesson.topicId} has no learner verification`);
+    assert.ok(types.has('recall'), `${lesson.topicId} has no explain-it-back check`);
+  }
+});
+
+test('every C++ topic has a dedicated definition, causal explanation, complete example, and failure model', () => {
+  const cppTopics = allTopics.filter((topic) => topic.sectionId === 'cpp');
+  assert.deepEqual(
+    new Set(Object.keys(cppLessonProfiles)),
+    new Set(cppTopics.map((topic) => topic.id)),
+    'C++ authored profile coverage drifted from the curriculum',
+  );
+
+  for (const topic of cppTopics) {
+    const profile = cppLessonProfiles[topic.id];
+    const lesson = getLessonForTopic(topic.id);
+    const explanation = lesson.blocks.find((block) => block.heading === 'How it works');
+    const code = lesson.blocks.find((block) => block.type === 'code');
+    const failure = lesson.blocks.find((block) => block.type === 'failure');
+    const application = lesson.blocks.find((block) => block.type === 'application');
+
+    assert.ok(profile.definition.length >= 120, `${topic.id} has a shallow definition`);
+    assert.ok(profile.explanation.length >= 140, `${topic.id} has a shallow mechanism`);
+    assert.ok(profile.steps.length >= 3, `${topic.id} has no causal sequence`);
+    assert.ok(profile.prediction.length >= 40, `${topic.id} has no useful prediction`);
+    assert.ok(profile.failure.length >= 120, `${topic.id} has a shallow failure model`);
+    assert.ok(profile.application.length >= 100, `${topic.id} has no concrete use`);
+    assert.ok(profile.example.length >= 80, `${topic.id} has no reproducible check`);
+    assert.ok(profile.code.length >= 100, `${topic.id} has no complete code example`);
+
+    assert.equal(lesson.summary, profile.definition, `${topic.id} does not use its authored definition`);
+    assert.equal(explanation?.body, profile.explanation, `${topic.id} does not explain how the rule works`);
+    assert.equal(code?.code, profile.code, `${topic.id} code example drifted`);
+    assert.equal(failure?.body, profile.failure, `${topic.id} failure model drifted`);
+    assert.equal(application?.body, profile.application, `${topic.id} real use drifted`);
+  }
+});
+
+test('every C++ sub-concept is individually defined and grounded with a concrete check', () => {
+  const cppTopics = allTopics.filter((topic) => topic.sectionId === 'cpp');
+  assert.deepEqual(
+    new Set(Object.keys(cppConcepts)),
+    new Set(cppTopics.map((topic) => topic.id)),
+    'C++ concept dictionary coverage drifted from the curriculum',
+  );
+
+  for (const topic of cppTopics) {
+    const lesson = getLessonForTopic(topic.id);
+    const block = lesson.blocks.find((item) => item.type === 'concepts');
+    const concepts = cppConcepts[topic.id];
+
+    assert.ok(block, `${topic.id} does not render its concept dictionary`);
+    assert.deepEqual(block.items, concepts, `${topic.id} renders the wrong concepts`);
+    assert.equal(new Set(concepts.map((item) => item.term.toLowerCase())).size, concepts.length);
+
+    for (const item of concepts) {
+      assert.ok(item.term.length >= 3, `${topic.id} has an unnamed concept`);
+      assert.ok(item.definition.length >= 80, `${topic.id}/${item.term} has a shallow definition`);
+      assert.ok(item.example.length >= 30, `${topic.id}/${item.term} has no concrete check`);
+    }
+  }
+});
+
+test('the requested C++ object-model, generic, STL, lambda, and modern-language coverage is explicit', () => {
+  const required = {
+    'cpp-modern-syntax': ['auto', 'decltype', 'nullptr', 'enum class', 'range-based for', 'structured binding', 'inline function'],
+    'cpp-encapsulation': ['encapsulation', 'public', 'private', 'protected', 'data hiding', 'getter', 'setter'],
+    'cpp-constructors': ['default constructor', 'parameterized constructor', 'copy constructor', 'move constructor', 'delegating constructor', 'conversion constructor', 'explicit constructor', 'deleted constructor', 'defaulted constructor', 'trivial destructor', 'non-trivial destructor', 'virtual destructor', 'defaulted destructor'],
+    'cpp-copy-move': ['rule of three', 'rule of five', 'rule of zero', 'copy assignment', 'move assignment', 'std::move', 'moving from const'],
+    'cpp-references': ['lvalue', 'rvalue', 'perfect forwarding', 'std::forward'],
+    'cpp-operators': ['operator overloading'],
+    'cpp-inheritance': ['diamond inheritance', 'virtual inheritance'],
+    'cpp-polymorphism': ['runtime polymorphism', 'vtable and vptr', 'object slicing', 'override', 'final'],
+    'cpp-exceptions': ['try block', 'throw expression', 'catch handler', 'multiple catch handlers', 'catch (...) / catch-all', 'noexcept', 'stack unwinding', 'basic exception guarantee', 'strong exception guarantee', 'no-throw guarantee'],
+    'cpp-templates': ['function template', 'class template', 'template instantiation', 'generic stack', 'generic queue', 'generic swap'],
+    'cpp-template-specialization': ['full specialization', 'partial specialization', 'variadic template', 'explicit instantiation'],
+    'cpp-stl': ['sequence container', 'ordered associative container', 'unordered associative container', 'container adaptor', 'algorithm', 'function object', 'std::function'],
+    'cpp-iterators': ['begin and end', 'cbegin and cend', 'rbegin and rend'],
+    'cpp-lambdas': ['lambda expression', 'capture by value', 'capture by reference', 'generic lambda', 'lambda with algorithm'],
+    'cpp-smart-pointers': ['unique_ptr', 'shared_ptr', 'weak_ptr', 'make_unique', 'make_shared', 'use_count', 'cyclic reference'],
+    'cpp-constexpr': ['constexpr variable', 'constexpr function', 'type-safe utility'],
+    'cpp-errors': ['std::optional', 'std::variant', 'std::visit', 'std::any', 'std::expected'],
+  };
+
+  for (const [topicId, expectedTerms] of Object.entries(required)) {
+    const terms = new Set(cppConcepts[topicId].map((item) => item.term.toLowerCase()));
+    for (const term of expectedTerms) {
+      assert.ok(terms.has(term), `${topicId} does not explicitly define ${term}`);
+    }
+  }
+});
+
+test('constructor lesson defines construction and destruction before tracing order', () => {
+  const lesson = getLessonForTopic('cpp-constructors');
+  const definition = lesson.blocks[0].body;
+  const explanation = lesson.blocks.find((block) => block.heading === 'How it works')?.body ?? '';
+  const code = lesson.blocks.find((block) => block.type === 'code')?.code ?? '';
+
+  for (const term of ['constructor', 'destructor', 'lifetime', 'valid state', 'resources']) {
+    assert.match(definition, new RegExp(term, 'i'), `constructor definition omits ${term}`);
+  }
+  for (const term of ['declaration order', 'initializer list', 'constructor body', 'reverse']) {
+    assert.match(explanation, new RegExp(term, 'i'), `constructor mechanism omits ${term}`);
+  }
+  for (const term of ['Buffer()', 'Buffer(const Buffer&', 'Buffer(Buffer&&', 'explicit Buffer', '= delete', '= default', 'virtual ~Interface']) {
+    assert.ok(code.includes(term), `constructor example omits ${term}`);
+  }
+});
+
 test('every deep topic has the complete mechanism lesson contract', () => {
   for (const topic of allTopics.filter((item) => item.level === 'deep')) {
     const lesson = getLessonForTopic(topic.id);
@@ -177,8 +353,10 @@ test('non-special deep lessons use topic-specific authored profiles', () => {
   for (const topic of allTopics.filter((item) => (
     item.level === 'deep'
     && item.sectionId !== 'dsa'
-    && item.group !== 'Linux C Labs'
+    && item.sectionId !== 'cpp'
+    && item.group !== 'Linux Systems Programming Labs'
     && item.group !== 'College MCU C Labs'
+    && item.sectionId !== 'qualcomm-prep'
     && !special.has(item.id)
   ))) {
     const profile = deepProfiles[topic.id];
@@ -475,6 +653,7 @@ test('systems categories and lessons follow the recommended learning order', () 
     'embedded',
     'stm32',
     'rtos',
+    'qualcomm-prep',
   ]);
 
   const ids = new Set(allTopics.map((topic) => topic.id));
@@ -510,20 +689,27 @@ test('C++, architecture, embedded, STM32, and Linux follow prerequisite-first to
   assertExactOrder('cpp', [
     'cpp-build',
     'cpp-namespaces',
+    'cpp-modern-syntax',
     'cpp-object-model',
+    'cpp-encapsulation',
     'cpp-constructors',
     'cpp-const',
     'cpp-references',
     'cpp-overload',
+    'cpp-operators',
     'cpp-copy-move',
     'cpp-raii',
     'cpp-smart-pointers',
     'cpp-composition',
+    'cpp-inheritance',
     'cpp-polymorphism',
+    'cpp-exceptions',
     'cpp-templates',
+    'cpp-template-specialization',
     'cpp-constexpr',
     'cpp-stl',
     'cpp-iterators',
+    'cpp-lambdas',
     'cpp-errors',
     'cpp-testing',
     'cpp-concurrency',
@@ -681,9 +867,39 @@ test('Linux implementation topics teach paired C and C++ code plus internals', (
   }
 });
 
+test('every Linux lesson explains how the same kernel contract is used from C++', () => {
+  const linuxTopics = allTopics.filter((topic) => topic.sectionId === 'os-linux');
+  assert.deepEqual(
+    new Set(Object.keys(linuxCppGuidance)),
+    new Set(linuxTopics.map((topic) => topic.id)),
+    'Linux C++ guidance coverage drifted from the curriculum',
+  );
+
+  for (const topic of linuxTopics) {
+    const lesson = getLessonForTopic(topic.id);
+    const bridge = lesson.blocks.find((block) => block.heading === 'The same Linux contract in C++');
+    assert.ok(bridge, `${topic.id} has no C++ treatment`);
+    assert.equal(bridge.body, linuxCppGuidance[topic.id], `${topic.id} uses the wrong C++ treatment`);
+    assert.ok(bridge.body.length >= 140, `${topic.id} has shallow C++ guidance`);
+  }
+});
+
+test('Linux programming labs are language-paired rather than labeled as C-only', () => {
+  const labTopics = allTopics.filter((topic) => topic.group === 'Linux Systems Programming Labs');
+  assert.equal(labTopics.length, 22);
+  assert.equal(allTopics.some((topic) => topic.group === 'Linux C Labs'), false);
+
+  for (const topic of labTopics) {
+    const pair = getLessonForTopic(topic.id).blocks.find((block) => block.type === 'code-pair');
+    assert.ok(pair, `${topic.id} has no C/C++ implementation pair`);
+    assert.deepEqual(pair.variants.map((variant) => variant.id), ['c', 'cpp']);
+  }
+});
+
 test('every code-bearing lesson outside C++, except explicit college C labs, exposes both implementations', () => {
   for (const topic of allTopics.filter((item) => (
     item.sectionId !== 'cpp'
+    && item.sectionId !== 'qualcomm-prep'
     && item.group !== 'College MCU C Labs'
     && item.group !== 'College DSA C Labs'
   ))) {

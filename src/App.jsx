@@ -3,6 +3,7 @@ import BrandMark from './components/BrandMark.jsx';
 import CategoryView from './components/CategoryView.jsx';
 import CaptureImportView from './components/CaptureImportView.jsx';
 import GlossaryDrawer from './components/GlossaryDrawer.jsx';
+import InternetPrepView from './components/InternetPrepView.jsx';
 import LessonReader from './components/LessonReader.jsx';
 import LibraryView from './components/LibraryView.jsx';
 import QuestionReader from './components/QuestionReader.jsx';
@@ -14,6 +15,7 @@ import {
   parseRoute,
   routeForCategory,
   routeForLesson,
+  routeForInternet,
   routeForLibrary,
   routeForQuestion,
   routeForQuestions,
@@ -104,6 +106,8 @@ export default function App() {
   const openLesson = (topicId) => navigate(routeForLesson(topicId));
   const openQuestion = (questionId) => navigate(routeForQuestion(questionId));
   const openQuestions = () => navigate(routeForQuestions());
+  const openInternetPrep = () => navigate(routeForInternet());
+  const openQualcommPrep = () => navigate(routeForCategory('qualcomm-prep'));
   const openLibrary = () => navigate(routeForLibrary());
 
   const pageContext = selectedTopic
@@ -112,6 +116,8 @@ export default function App() {
       ? `Questions / ${selectedQuestion.title}`
       : route.view === 'questions'
         ? 'Question practice'
+        : route.view === 'internet'
+          ? 'Qualcomm India / reported online'
         : route.view === 'capture'
           ? 'Safe capture'
           : selectedCategory
@@ -127,6 +133,12 @@ export default function App() {
         </button>
         <p className="topbar-context">{pageContext}</p>
         <div className="topbar-actions">
+          {route.view !== 'internet' && (
+            <button type="button" onClick={openInternetPrep}>From the internet</button>
+          )}
+          {selectedCategory?.id !== 'qualcomm-prep' && (
+            <button type="button" onClick={openQualcommPrep}>Qualcomm Prep</button>
+          )}
           {route.view !== 'questions' && (
             <button type="button" onClick={openQuestions}>Questions</button>
           )}
@@ -191,6 +203,13 @@ export default function App() {
           />
         )}
 
+        {route.view === 'internet' && (
+          <InternetPrepView
+            onBack={openLibrary}
+            onOpenLesson={openLesson}
+          />
+        )}
+
         {route.view === 'question' && selectedQuestion && (
           <QuestionReader
             question={selectedQuestion}
@@ -209,6 +228,7 @@ export default function App() {
         )}
 
         {route.view !== 'library'
+          && route.view !== 'internet'
           && route.view !== 'questions'
           && route.view !== 'capture'
           && !selectedCategory

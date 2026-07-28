@@ -13,6 +13,10 @@ import { dsaCImplementations } from './dsaCImplementations.js';
 import { collegeMcuLabByTopicId } from './collegeMcuLabs.js';
 import { collegeDsaLabByTopicId } from './collegeDsaLabs.js';
 import { realApplicationFor } from './realApplications.js';
+import { cppProfileFor } from './cppLessonProfiles.js';
+import { cppConceptsFor } from './cppConcepts.js';
+import { linuxCppGuidanceFor } from './linuxCppGuidance.js';
+import { qualcommPrepProfileFor } from './qualcommPrep.js';
 
 const sentenceKeywords = (topic) => {
   const words = topic.keywords.slice(0, 4);
@@ -120,7 +124,6 @@ const lensForTopic = (topic) => teachingLenses[topic.sectionId] ?? teachingLense
 
 const briefLesson = (topic) => {
   const note = noteForTopic(topic.id);
-  const lens = lensForTopic(topic);
   return {
     topicId: topic.id,
     title: topic.title,
@@ -131,11 +134,6 @@ const briefLesson = (topic) => {
     blocks: [
       { type: 'prose', heading: 'The useful idea', body: note.mechanism },
       { type: 'example', heading: 'A concrete check', body: note.example },
-      {
-        type: 'failure',
-        heading: 'Common mistake',
-        body: `${lens.failure} For this topic, verify the rule connecting ${topic.keywords[0]} to ${topic.keywords[1] ?? 'the resulting state'}.`,
-      },
       recall(`Explain ${topic.title.toLowerCase()} using one input, one state change, and one observable output.`),
     ],
   };
@@ -156,18 +154,13 @@ const standardLesson = (topic) => {
       { type: 'example', heading: 'Make it concrete', body: note.example },
       {
         type: 'steps',
-        heading: 'Trace one operation',
+        heading: 'Work one case from start to finish',
         items: [
-          `Record the initial ${lens.state}; do not begin from the vocabulary alone.`,
-          `Apply this concrete case: ${note.example}`,
-          `Mark the first changed ${topic.keywords[0]} and preserve the rule involving ${topic.keywords[1] ?? 'the next observer'}.`,
-          `Confirm the result with ${lens.observer}.`,
+          `Start with the concrete case: ${note.example}`,
+          `Identify the relevant ${sentenceKeywords(topic)} in that case and record their initial state.`,
+          `Apply this governing rule: ${note.mechanism}`,
+          `Check the resulting state with ${lens.observer}.`,
         ],
-      },
-      {
-        type: 'failure',
-        heading: 'Where intuition slips',
-        body: `${lens.failure} The useful boundary here is the ${topic.keywords[0]} rule stated in the mechanism above.`,
       },
       { type: 'practice', heading: 'Try it', body: `${note.example} Record the result with ${lens.observer}.` },
       recall(`Rebuild ${topic.title.toLowerCase()} from its initial state, operation, and final state.`),
@@ -215,6 +208,171 @@ const expandedDeepLesson = (topic) => {
   };
 };
 
+const qualcommLesson = (topic) => {
+  const profile = qualcommPrepProfileFor(topic.id);
+  const stepLabels = profile.steps.map((_, index) => `Step ${index + 1}`);
+  const implementations = profile.codeExamples.flatMap((example) => {
+    if (example.c && example.cpp) {
+      return [codePair({
+        heading: example.heading,
+        note: example.note,
+        c: example.c,
+        cpp: example.cpp,
+      })];
+    }
+    return [{
+      type: 'code',
+      language: example.language ?? 'C17',
+      heading: example.heading,
+      code: example.code,
+    }];
+  });
+
+  return {
+    topicId: topic.id,
+    title: topic.title,
+    section: topic.sectionTitle,
+    depth: topic.level,
+    contentSource: 'authored',
+    summary: profile.definition,
+    application: profile.application,
+    blocks: [
+      {
+        type: 'definition',
+        heading: 'What it is',
+        body: profile.definition,
+      },
+      {
+        type: 'prediction',
+        heading: 'Commit before the reveal',
+        prompt: profile.prediction,
+      },
+      {
+        type: 'prose',
+        heading: 'Build the answer from the mechanism',
+        body: profile.explanation,
+      },
+      {
+        type: 'concepts',
+        heading: 'Define every moving part',
+        items: profile.concepts,
+      },
+      {
+        type: 'steps',
+        heading: 'Reason in this order',
+        items: profile.steps,
+      },
+      {
+        type: 'visual',
+        heading: 'Trace the reasoning',
+        kind: 'timeline',
+        invariant: 'Each step must follow from a stated definition, constraint, or observed state.',
+        frames: profile.steps.map((caption, index) => ({
+          caption,
+          values: stepLabels,
+          active: [stepLabels[index]],
+          markers: [`Step ${index + 1} / ${profile.steps.length}`],
+        })),
+      },
+      {
+        type: 'source-prompts',
+        heading: 'Questions found in the source folder',
+        items: profile.sourcePrompts,
+      },
+      ...implementations,
+      {
+        type: 'failure',
+        heading: 'What weak answers miss',
+        body: profile.failure,
+      },
+      {
+        type: 'practice',
+        heading: 'Prove you can use it',
+        body: profile.practice,
+      },
+      recall(`Define ${topic.title.toLowerCase()}, explain the governing mechanism, trace one real case, and identify the first failure you would measure.`),
+    ],
+  };
+};
+
+const cppLesson = (topic) => {
+  const lessonProfile = cppProfileFor(topic.id);
+  const concepts = cppConceptsFor(topic.id);
+  const includeFullTrace = topic.level !== 'brief';
+  const includeVisual = topic.level === 'deep';
+
+  return {
+    topicId: topic.id,
+    title: topic.title,
+    section: topic.sectionTitle,
+    depth: topic.level,
+    contentSource: 'authored',
+    summary: lessonProfile.definition,
+    application: lessonProfile.application,
+    blocks: [
+      {
+        type: 'definition',
+        heading: 'What it is',
+        body: lessonProfile.definition,
+      },
+      ...(includeFullTrace ? [{
+        type: 'prediction',
+        heading: 'Predict before the explanation',
+        prompt: lessonProfile.prediction,
+      }] : []),
+      {
+        type: 'prose',
+        heading: 'How it works',
+        body: lessonProfile.explanation,
+      },
+      {
+        type: 'concepts',
+        heading: 'Define every moving part',
+        items: concepts,
+      },
+      ...(includeFullTrace ? [{
+        type: 'steps',
+        heading: 'Follow the language rules in order',
+        items: lessonProfile.steps,
+      }] : []),
+      ...(includeVisual ? [{
+        type: 'visual',
+        heading: 'Watch the state change',
+        kind: 'timeline',
+        invariant: lessonProfile.explanation,
+        frames: lessonProfile.steps.map((caption, index) => ({
+          caption: `${index + 1}. ${caption}${index + 1 === lessonProfile.steps.length ? ' — result complete' : ''}`,
+          values: lessonProfile.steps.map((_, stepIndex) => `state ${stepIndex + 1}`),
+          markers: [`step ${index + 1}`],
+          active: [`state ${index + 1}`],
+        })),
+      }] : []),
+      {
+        type: 'code',
+        language: lessonProfile.standard,
+        heading: 'See the rule in code',
+        code: lessonProfile.code,
+      },
+      {
+        type: 'example',
+        heading: 'Run this check',
+        body: lessonProfile.example,
+      },
+      {
+        type: 'failure',
+        heading: 'Where the model breaks',
+        body: lessonProfile.failure,
+      },
+      ...(includeFullTrace ? [{
+        type: 'practice',
+        heading: 'Prove it to yourself',
+        body: lessonProfile.example,
+      }] : []),
+      recall(`Define ${topic.title.toLowerCase()}, explain its governing language rule, trace the example, and name the first failure caused by violating that rule.`),
+    ],
+  };
+};
+
 const mechanismSpecs = {
   ...linuxMechanismSpecs,
   'c-stack-heap': {
@@ -258,7 +416,7 @@ const mechanismSpecs = {
     practice: 'Use /proc/<pid>/maps and a debugger to compare a variable’s virtual address with the region that owns it.',
   },
   'os-virtual-memory': {
-    summary: 'Virtual memory gives each process protected page mappings and lets the kernel allocate, share, copy, evict, and lazily populate physical storage behind them.',
+    summary: 'Virtual memory gives each process protected page mappings, uses the TLB to cache recent translations, and lets the kernel allocate, share, copy, evict, and lazily populate physical storage behind them.',
     prediction: 'Why can reserving a large region succeed before the machine has enough free RAM to back every page?',
     steps: ['Reserve a virtual range and record its mapping policy.', 'Raise a page fault on the first access to an absent page.', 'Supply a zero page, file page, private copy, or access error.', 'Under pressure, reclaim clean pages or move anonymous contents to swap.'],
     visual: [['reserve · virtual pages present · physical frames absent'], ['first write → page fault → allocate frame → map writable'], ['pressure → reclaim clean page or swap anonymous page']],
@@ -274,7 +432,7 @@ const mechanismSpecs = {
     practice: 'Map one file privately and shared, write both mappings, and compare memory with the on-disk bytes.',
   },
   'os-syscalls': {
-    summary: 'A system call is a controlled privilege transition with a register convention, validated arguments, a kernel handler, possible blocking, and an explicit return path.',
+    summary: 'A system call is a controlled trap-like privilege transition: user code places arguments in kernel-defined registers, enters a validated kernel handler, may block, and follows an explicit return path.',
     prediction: 'Why can a normal function call not safely read a disk device register directly from an unprivileged process?',
     steps: ['A user-space wrapper places the syscall number and arguments in architecture-defined registers.', 'The syscall instruction switches privilege and transfers control to a kernel entry point.', 'The kernel validates pointers, permissions, lengths, and object state before doing work.', 'A result or negative error is placed in the return register and control returns to user mode.'],
     visual: [['user · rax=read, rdi=fd, rsi=buf, rdx=count'], ['syscall instruction ⇣ privilege boundary'], ['kernel · validate → perform/block → return; user wrapper sets errno']],
@@ -786,13 +944,15 @@ const collegeCLabLesson = (topic, lab, platform) => {
 };
 
 const lessonFor = (topic) => {
-  if (topic.group === 'Linux C Labs') return linuxLabLesson(topic);
+  if (topic.sectionId === 'qualcomm-prep') return qualcommLesson(topic);
+  if (topic.group === 'Linux Systems Programming Labs') return linuxLabLesson(topic);
   if (topic.group === 'College MCU C Labs') {
     return collegeCLabLesson(topic, collegeMcuLabByTopicId.get(topic.id), 'STM32F446RE');
   }
   if (topic.group === 'College DSA C Labs') {
     return collegeCLabLesson(topic, collegeDsaLabByTopicId.get(topic.id), 'host');
   }
+  if (topic.sectionId === 'cpp') return cppLesson(topic);
   if (topic.sectionId === 'dsa') return dsaLesson(topic);
   if (mechanismSpecs[topic.id]) return mechanismLesson(topic, mechanismSpecs[topic.id]);
   if (topic.level === 'standard') return standardLesson(topic);
@@ -800,24 +960,44 @@ const lessonFor = (topic) => {
   return briefLesson(topic);
 };
 
-const withRealApplication = (topic, lesson) => {
+const withTeachingFoundation = (topic, lesson) => {
+  const existingDefinition = lesson.blocks.find((block) => block.type === 'definition');
+  const definition = existingDefinition?.body ?? lesson.summary;
   const application = {
     type: 'application',
     heading: 'Where this is used',
-    body: realApplicationFor(topic),
+    body: lesson.application ?? realApplicationFor(topic),
   };
-  const predictionIndex = lesson.blocks.findIndex((block) => block.type === 'prediction');
-  const insertAt = predictionIndex >= 0 ? predictionIndex + 1 : 1;
+  const linuxCppBridge = topic.sectionId === 'os-linux'
+    ? [{
+      type: 'prose',
+      heading: 'The same Linux contract in C++',
+      body: linuxCppGuidanceFor(topic),
+    }]
+    : [];
+  const remainingBlocks = lesson.blocks.filter((block) => (
+    block.type !== 'definition'
+    && block.type !== 'application'
+    && !(block.type === 'prose' && block.body?.trim() === definition.trim())
+  ));
+
   return {
     ...lesson,
+    summary: definition,
+    application: undefined,
     blocks: [
-      ...lesson.blocks.slice(0, insertAt),
+      {
+        type: 'definition',
+        heading: 'What it is',
+        body: definition,
+      },
       application,
-      ...lesson.blocks.slice(insertAt),
+      ...linuxCppBridge,
+      ...remainingBlocks,
     ],
   };
 };
 
-export const lessons = allTopics.map((topic) => withRealApplication(topic, lessonFor(topic)));
+export const lessons = allTopics.map((topic) => withTeachingFoundation(topic, lessonFor(topic)));
 
 export const lessonByTopicId = new Map(lessons.map((lesson) => [lesson.topicId, lesson]));

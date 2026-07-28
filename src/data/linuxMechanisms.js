@@ -20,7 +20,7 @@ const spec = ({
 
 export const linuxMechanismSpecs = {
   'os-syscall-contract': spec({
-    summary: 'A libc wrapper translates a C call into the architecture syscall convention, while correct callers handle errors, short work, and EINTR rather than assuming one call completes the request.',
+    summary: 'A libc wrapper translates a C or C++ call into the architecture syscall convention, while correct callers handle errors, partial I/O, short work, and EINTR rather than assuming one call completes the request.',
     prediction: 'If write(fd, buffer, 4096) returns 700 without errno, did it fail?',
     steps: ['Place the syscall number and arguments according to the ABI.', 'Enter kernel mode and validate the user arguments.', 'Perform as much work as current object state permits.', 'Return a nonnegative result or a negative kernel error translated to -1 and errno by libc.'],
     failure: 'Treating a short result as success loses bytes. Retrying every EINTR blindly can violate timeout or cancellation rules.',
@@ -101,7 +101,7 @@ int main(void) {
 }`,
   }),
   'os-process-create': spec({
-    summary: 'fork creates a child task with copied process metadata, copy-on-write memory mappings, and new descriptor-table references to the same open-file descriptions.',
+    summary: 'fork creates a child task with copied process metadata, copy-on-write memory mappings, and descriptor inheritance through new table references to the same open-file descriptions.',
     prediction: 'Immediately after fork, which bytes are physically copied and which kernel objects are only reference-counted?',
     steps: ['Validate limits and allocate a new task identity.', 'Duplicate process metadata and page-table structure.', 'Mark writable private mappings copy-on-write rather than copying every page.', 'Return the child PID to the parent and zero to the child.'],
     failure: 'Both branches continue from the same instruction. Unflushed stdio buffers can print twice, and calling exit in a failed post-fork child can flush inherited buffers again.',
@@ -139,7 +139,7 @@ int main(void) {
 }`,
   }),
   'os-exit': spec({
-    summary: 'exit performs C-library termination such as atexit handlers and stdio flushing, while _exit enters kernel process termination directly, releases references, stores status, and notifies the parent.',
+    summary: 'exit performs C-library termination such as atexit handlers and stdio flushing, while _exit enters kernel process termination directly, ends the thread group, releases references, stores status, and notifies the parent.',
     prediction: 'Why should a child that cannot exec normally call _exit rather than exit?',
     steps: ['Choose library exit or direct process exit based on context.', 'End sibling threads and release memory, descriptors, and kernel references.', 'Retain only the small exit record required by the parent.', 'Notify the parent with SIGCHLD and become waitable.'],
     failure: 'Using exit after fork can flush inherited buffered output twice. Using _exit in a normal single-process path skips intended atexit cleanup.',
@@ -346,7 +346,7 @@ int main(void) {
 }`,
   }),
   'os-signals': spec({
-    summary: 'Signals combine disposition, per-thread masks, process pending state, delivery selection, and a saved user context; handlers must do minimal async-signal-safe work.',
+    summary: 'Signals combine disposition, per-thread masks changed with sigprocmask or pthread_sigmask, process pending state, delivery selection, and a saved user context; handlers must do minimal async-signal-safe work.',
     prediction: 'If three identical standard signals arrive while blocked, must the handler run three times after unblocking?',
     steps: ['Install a disposition with sigaction before enabling the source.', 'Block signals while modifying state that delivery observes.', 'The kernel marks a signal pending and chooses an eligible thread for delivery.', 'Exception return restores the saved context after the handler or default action.'],
     failure: 'Standard signals may coalesce. printf, malloc, and most library calls are unsafe in a handler; use a flag, self-pipe, or eventfd handoff.',

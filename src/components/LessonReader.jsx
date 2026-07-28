@@ -21,7 +21,6 @@ export default function LessonReader({
           <span>{lesson.depth} lesson</span>
         </div>
         <h1>{lesson.title}</h1>
-        <p>{lesson.summary}</p>
         <button className="glossary-trigger" type="button" onClick={onGlossary}>
           Open glossary
         </button>

@@ -18,6 +18,9 @@ export function parseRoute(hash = '') {
   if (parts[0] === 'questions' && parts.length === 1) {
     return { view: 'questions' };
   }
+  if (parts[0] === 'internet' && parts.length === 1) {
+    return { view: 'internet' };
+  }
   if (parts[0] === 'question' && parts.length === 2) {
     return { view: 'question', questionId: clean(parts[1]) };
   }
@@ -31,5 +34,6 @@ export const routeForLibrary = () => '#/';
 export const routeForCategory = (sectionId) => `#/category/${encodeURIComponent(sectionId)}`;
 export const routeForLesson = (topicId) => `#/lesson/${encodeURIComponent(topicId)}`;
 export const routeForQuestions = () => '#/questions';
+export const routeForInternet = () => '#/internet';
 export const routeForQuestion = (questionId) => `#/question/${encodeURIComponent(questionId)}`;
 export const routeForCapture = (payload) => `#/capture/${encodeURIComponent(payload)}`;

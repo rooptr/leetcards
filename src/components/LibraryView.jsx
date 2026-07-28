@@ -38,6 +38,9 @@ export default function LibraryView({
   onOpenLesson,
   searchRef,
 }) {
+  const qualcommPrep = curriculum.find((category) => category.id === 'qualcomm-prep');
+  const coreCurriculum = curriculum.filter((category) => category.id !== 'qualcomm-prep');
+
   return (
     <main className="library-view">
       <header className="library-intro">
@@ -65,34 +68,61 @@ export default function LibraryView({
       {query.trim() ? (
         <SearchResults query={query} results={results} onOpenLesson={onOpenLesson} />
       ) : (
-        <section className="category-index" aria-labelledby="category-index-title">
-          <div className="index-heading">
-            <h2 id="category-index-title">Categories</h2>
-            <span>{curriculum.reduce((total, item) => total + item.topics.length, 0)} lessons</span>
-          </div>
-          <div className="category-grid">
-            {curriculum.map((category, index) => (
+        <>
+          {qualcommPrep && (
+            <section className="qualcomm-entry-section" aria-labelledby="qualcomm-entry-title">
+              <p className="eyebrow">Interview collection</p>
               <button
-                className={`category-entry category-entry-${(index % 5) + 1}`}
+                className="qualcomm-entry"
                 type="button"
-                key={category.id}
-                onClick={() => onOpenCategory(category.id)}
+                onClick={() => onOpenCategory(qualcommPrep.id)}
               >
-                <span className="category-number">{String(index + 1).padStart(2, '0')}</span>
-                <span className="category-copy">
-                  <strong>{category.title}</strong>
-                  <span>{category.description}</span>
-                  <small>
-                    {category.topics.length} lessons
-                    <span aria-hidden="true"> / </span>
-                    {category.topics.slice(0, 3).map((topic) => topic.title).join(', ')}
-                  </small>
+                <span className="qualcomm-entry-copy">
+                  <strong id="qualcomm-entry-title">Qualcomm Prep</strong>
+                  <span>
+                    Every prompt recovered from the downloaded folder, corrected and
+                    rebuilt as definition-first lessons.
+                  </span>
+                </span>
+                <span className="qualcomm-entry-proof">
+                  <span>{qualcommPrep.topics.length} lessons</span>
+                  <span>42 source files</span>
+                  <span>37 visual assets inspected</span>
                 </span>
                 <span className="category-arrow" aria-hidden="true">→</span>
               </button>
-            ))}
-          </div>
-        </section>
+            </section>
+          )}
+
+          <section className="category-index" aria-labelledby="category-index-title">
+            <div className="index-heading">
+              <h2 id="category-index-title">Core curriculum</h2>
+              <span>{coreCurriculum.reduce((total, item) => total + item.topics.length, 0)} lessons</span>
+            </div>
+            <div className="category-grid">
+              {coreCurriculum.map((category, index) => (
+                <button
+                  className={`category-entry category-entry-${(index % 5) + 1}`}
+                  type="button"
+                  key={category.id}
+                  onClick={() => onOpenCategory(category.id)}
+                >
+                  <span className="category-number">{String(index + 1).padStart(2, '0')}</span>
+                  <span className="category-copy">
+                    <strong>{category.title}</strong>
+                    <span>{category.description}</span>
+                    <small>
+                      {category.topics.length} lessons
+                      <span aria-hidden="true"> / </span>
+                      {category.topics.slice(0, 3).map((topic) => topic.title).join(', ')}
+                    </small>
+                  </span>
+                  <span className="category-arrow" aria-hidden="true">→</span>
+                </button>
+              ))}
+            </div>
+          </section>
+        </>
       )}
     </main>
   );

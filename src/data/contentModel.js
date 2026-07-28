@@ -10,6 +10,27 @@ export function validateLesson(lesson) {
   if (!LESSON_DEPTHS.includes(lesson?.depth)) errors.push('depth');
   if (!lesson?.summary || lesson.summary.length < 45) errors.push('summary');
   if (!Array.isArray(lesson?.blocks) || lesson.blocks.length < 3) errors.push('blocks');
+  const definitions = lesson?.blocks?.filter((block) => block.type === 'definition') ?? [];
+  if (definitions.length !== 1) errors.push('definition');
+  if (lesson?.blocks?.[0]?.type !== 'definition') errors.push('definition:first');
+  if (!definitions[0]?.body || definitions[0].body.length < 45) errors.push('definition:body');
+  for (const block of lesson?.blocks?.filter((item) => item.type === 'concepts') ?? []) {
+    if (!Array.isArray(block.items) || block.items.length === 0) {
+      errors.push('concepts:items');
+      continue;
+    }
+    for (const item of block.items) {
+      if (!item?.term || !item?.definition || !item?.example) {
+        errors.push('concepts:item');
+        break;
+      }
+    }
+  }
+  for (const block of lesson?.blocks?.filter((item) => item.type === 'source-prompts') ?? []) {
+    if (!Array.isArray(block.items) || block.items.length === 0) {
+      errors.push('source-prompts:items');
+    }
+  }
 
   if (lesson?.depth === 'deep') {
     const types = new Set(lesson.blocks?.map((block) => block.type));

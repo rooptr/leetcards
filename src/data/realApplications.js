@@ -110,16 +110,16 @@ const highlightedApplications = {
 };
 
 const sectionContexts = {
-  c: 'Firmware, kernels, parsers, and device drivers rely on this C rule because the generated loads, stores, layout, and lifetime behavior directly affect hardware-visible correctness.',
-  cpp: 'Resource-owning services, tools, and embedded applications use this C++ feature to encode lifetime, invariants, generic operations, and failure handling in types.',
-  architecture: 'CPU designers and performance engineers observe this mechanism while explaining instruction latency, memory traffic, or the difference between source code and measured execution.',
-  'os-linux': 'Shells, servers, containers, debuggers, and system utilities exercise this mechanism through concrete process, file, memory, scheduling, or kernel state.',
-  networking: 'Browsers, APIs, routers, and diagnostic tools depend on this protocol behavior while moving a real request across hosts and recovering from loss or misconfiguration.',
-  engineering: 'Production teams use this practice to make a regression reproducible, isolate its cause, verify the fix, and preserve evidence for later changes.',
-  electronics: 'Board designers and bring-up engineers apply this electrical rule when selecting components, checking a schematic, powering hardware, and interpreting meter or oscilloscope readings.',
-  embedded: 'Real firmware uses this mechanism to control a peripheral under timing, power, memory, and failure constraints that remain even when the MCU vendor changes.',
-  stm32: 'On NUCLEO-F446RE this mechanism appears in the board schematic, STM32 register state, HAL driver state, and the waveform or memory value observed through SWD and instruments.',
-  rtos: 'A real-time controller uses this mechanism to ensure sensor acquisition, control outputs, communication, and fault handling meet bounded timing and ownership rules.',
+  c: 'Firmware, kernels, parsers, and device drivers expose C rules directly through object bytes, generated loads and stores, memory layout, and lifetime.',
+  cpp: 'Resource-owning services, tools, and embedded applications expose C++ object rules through construction, ownership transfer, generic interfaces, and deterministic cleanup.',
+  architecture: 'A measured CPU workload exposes architectural rules through register values, instruction timing, cache traffic, addresses, and bus transactions.',
+  'os-linux': 'A shell, server, container, debugger, or system utility exposes operating-system rules through process, file, memory, scheduling, and kernel-visible state.',
+  networking: 'A browser request, API exchange, or routed packet exposes protocol rules through headers, addresses, retransmissions, socket state, and timing.',
+  engineering: 'A production regression exposes engineering practice through a reproducible symptom, controlled change, retained evidence, and a test that distinguishes cause from coincidence.',
+  electronics: 'A powered board exposes electrical rules through current paths, net voltages, component limits, and meter or oscilloscope readings.',
+  embedded: 'A peripheral driver exposes embedded rules through clocks, registers, flags, pin state, buffers, interrupts, and measured timing.',
+  stm32: 'A NUCLEO-F446RE experiment exposes the STM32 implementation through its schematic net, register fields, HAL state, SWD evidence, and measured waveform.',
+  rtos: 'A real-time controller exposes scheduling and ownership rules through task states, priorities, queues, lock owners, interrupt latency, and deadline measurements.',
 };
 
 export function realApplicationFor(topic) {
@@ -132,7 +132,7 @@ export function realApplicationFor(topic) {
   const dsaLab = collegeDsaLabByTopicId.get(topic.id);
   if (dsaLab) return dsaApplications[topic.id];
 
-  if (topic.group === 'Linux C Labs') {
+  if (topic.group === 'Linux Systems Programming Labs') {
     const labId = topic.id.slice('linux-'.length).toUpperCase();
     const lab = linuxLabById.get(labId);
     return `${lab.title} is the real system utility or process experiment: ${lab.mechanism} The observable output demonstrates the same kernel contract used by shells, servers, and administration tools.`;
@@ -143,5 +143,5 @@ export function realApplicationFor(topic) {
   if (!note || !context) {
     throw new Error(`Missing concrete application context for ${topic.id}`);
   }
-  return `${context} Concrete check: ${note[1]}`;
+  return `${context} For ${topic.title.toLowerCase()}, the specific rule is: ${note[0]} Concrete check: ${note[1]}`;
 }

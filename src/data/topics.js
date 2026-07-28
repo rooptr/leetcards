@@ -1,6 +1,7 @@
 import { linuxLabs } from './linuxLabs.js';
 import { collegeMcuLabs } from './collegeMcuLabs.js';
 import { collegeDsaLabs } from './collegeDsaLabs.js';
+import { qualcommPrepTopics } from './qualcommPrepTopics.js';
 
 const topic = (id, title, keywords = [], level = 'brief', group = null) => ({
   id,
@@ -22,7 +23,7 @@ const linuxLabTopics = linuxLabs.map((lab) => topic(
   lab.title,
   [lab.id, ...lab.title.toLowerCase().split(/[^a-z0-9]+/).filter(Boolean).slice(0, 8)],
   'deep',
-  'Linux C Labs',
+  'Linux Systems Programming Labs',
 ));
 
 const collegeMcuLabTopics = collegeMcuLabs.map((lab) => topic(
@@ -67,21 +68,28 @@ const curriculumUnordered = [
   section('cpp', 'C++', 'Use modern C++ to express ownership, lifetime, generic code, errors, and concurrency precisely.', [
     topic('cpp-build', 'C++ build, compiler, and linker workflow', ['compiler', 'linker', 'CMake', 'object file'], 'standard', 'C++ toolchain and program model'),
     topic('cpp-namespaces', 'Namespaces, linkage, and translation units', ['namespace', 'linkage', 'ODR'], 'standard', 'C++ toolchain and program model'),
+    topic('cpp-modern-syntax', 'Modern syntax and type-safe language features', ['auto', 'decltype', 'nullptr', 'enum class', 'range-based for', 'structured binding', 'inline'], 'standard', 'C++ language foundations'),
     topic('cpp-object-model', 'Object lifetime and value semantics', ['object', 'lifetime', 'value'], 'standard', 'C++ language and object semantics'),
-    topic('cpp-constructors', 'Constructors, destructors, and initialization', ['constructor', 'destructor', 'initialization order'], 'standard', 'C++ language and object semantics'),
+    topic('cpp-encapsulation', 'Classes, encapsulation, and data hiding', ['public', 'private', 'protected', 'getter', 'setter', 'invariant'], 'standard', 'C++ language and object semantics'),
+    topic('cpp-constructors', 'Constructors, destructors, and initialization', ['default constructor', 'parameterized constructor', 'copy constructor', 'move constructor', 'delegating constructor', 'conversion constructor', 'explicit', 'delete', 'default', 'virtual destructor'], 'deep', 'C++ language and object semantics'),
     topic('cpp-const', 'Const correctness and mutable state', ['const', 'mutable', 'member function'], 'standard', 'C++ language and object semantics'),
-    topic('cpp-references', 'References, value categories, and reference collapsing', ['lvalue', 'rvalue', 'reference'], 'standard', 'C++ language and object semantics'),
+    topic('cpp-references', 'References, value categories, and perfect forwarding', ['lvalue', 'rvalue', 'reference collapsing', 'perfect forwarding', 'std::forward'], 'deep', 'C++ language and object semantics'),
     topic('cpp-overload', 'Overload resolution and conversions', ['overload', 'conversion', 'ambiguity'], 'standard', 'C++ language and object semantics'),
-    topic('cpp-copy-move', 'Copy and move semantics', ['copy', 'move', 'rule of five'], 'deep', 'C++ language and object semantics'),
+    topic('cpp-operators', 'Operator overloading', ['operator', 'comparison', 'stream operator'], 'standard', 'C++ language and object semantics'),
+    topic('cpp-copy-move', 'Special members, copy and move semantics', ['rule of three', 'rule of five', 'rule of zero', 'copy assignment', 'move assignment', 'std::move'], 'deep', 'C++ language and object semantics'),
     topic('cpp-raii', 'RAII and resource ownership', ['destructor', 'resource', 'scope'], 'deep', 'C++ OOP and ownership'),
-    topic('cpp-smart-pointers', 'Smart pointers', ['unique_ptr', 'shared_ptr', 'weak_ptr'], 'deep', 'C++ OOP and ownership'),
+    topic('cpp-smart-pointers', 'Smart pointers and ownership graphs', ['unique_ptr', 'shared_ptr', 'weak_ptr', 'make_unique', 'make_shared', 'use_count', 'cycle'], 'deep', 'C++ OOP and ownership'),
     topic('cpp-composition', 'Composition and class invariants', ['class', 'invariant'], 'brief', 'C++ OOP and ownership'),
-    topic('cpp-polymorphism', 'Inheritance and virtual dispatch', ['virtual', 'vtable'], 'standard', 'C++ OOP and ownership'),
-    topic('cpp-templates', 'Templates, concepts, and generic code', ['template', 'concept'], 'deep', 'C++ templates and STL'),
-    topic('cpp-constexpr', 'Compile-time evaluation', ['constexpr', 'consteval', 'type trait'], 'standard', 'C++ templates and STL'),
-    topic('cpp-stl', 'STL containers and algorithms', ['vector', 'map', 'algorithm'], 'standard', 'C++ templates and STL'),
-    topic('cpp-iterators', 'Iterators, ranges, and lambdas', ['iterator', 'range', 'lambda'], 'standard', 'C++ templates and STL'),
-    topic('cpp-errors', 'Exceptions and error values', ['exception', 'optional', 'variant', 'expected'], 'standard', 'C++ reliability and concurrency'),
+    topic('cpp-inheritance', 'Inheritance and the diamond problem', ['inheritance', 'base', 'derived', 'diamond', 'virtual inheritance'], 'deep', 'C++ OOP and ownership'),
+    topic('cpp-polymorphism', 'Runtime polymorphism, vtables, and object slicing', ['virtual', 'vtable', 'vptr', 'override', 'final', 'object slicing'], 'deep', 'C++ OOP and ownership'),
+    topic('cpp-exceptions', 'Exception handling and exception safety', ['try', 'throw', 'catch', 'catch all', 'noexcept', 'stack unwinding', 'exception guarantee'], 'deep', 'C++ reliability and concurrency'),
+    topic('cpp-templates', 'Function and class templates, concepts, and generic structures', ['function template', 'class template', 'template instantiation', 'generic stack', 'generic queue', 'swap', 'concept'], 'deep', 'C++ templates and STL'),
+    topic('cpp-template-specialization', 'Template specialization, variadic templates, and instantiation', ['specialization', 'partial specialization', 'variadic template', 'fold expression', 'explicit instantiation'], 'deep', 'C++ templates and STL'),
+    topic('cpp-constexpr', 'constexpr, consteval, and type traits', ['constexpr variable', 'constexpr function', 'consteval', 'type trait'], 'standard', 'C++ templates and STL'),
+    topic('cpp-stl', 'STL containers, algorithms, and function objects', ['vector', 'map', 'unordered_map', 'stack', 'queue', 'algorithm', 'function object'], 'deep', 'C++ templates and STL'),
+    topic('cpp-iterators', 'Iterators and ranges', ['begin', 'end', 'cbegin', 'cend', 'rbegin', 'rend', 'iterator invalidation'], 'standard', 'C++ templates and STL'),
+    topic('cpp-lambdas', 'Lambdas and algorithm callbacks', ['lambda', 'capture by value', 'capture by reference', 'generic lambda', 'algorithm'], 'deep', 'C++ templates and STL'),
+    topic('cpp-errors', 'Type-safe result and utility types', ['optional', 'variant', 'visit', 'any', 'expected'], 'standard', 'C++ reliability and concurrency'),
     topic('cpp-testing', 'Testing modern C++', ['sanitizer', 'test', 'fixture'], 'standard', 'C++ reliability and concurrency'),
     topic('cpp-concurrency', 'C++ concurrency and atomics', ['thread', 'atomic', 'mutex', 'memory order'], 'deep', 'C++ reliability and concurrency'),
   ]),
@@ -96,7 +104,7 @@ const curriculumUnordered = [
     topic('os-files', 'File descriptors, files, and inodes', ['file descriptor', 'inode', 'VFS'], 'standard', 'Files and descriptors'),
     topic('os-filesystems', 'Filesystems, mounting, and paths', ['mount', 'filesystem', 'directory entry'], 'standard', 'Files and descriptors'),
     topic('os-permissions', 'Users, groups, permissions, and capabilities', ['UID', 'GID', 'mode bits', 'capability'], 'standard', 'Files and descriptors'),
-    topic('os-file-io', 'File I/O and metadata in C', ['open', 'read', 'write', 'lseek', 'stat'], 'deep', 'Files and descriptors'),
+    topic('os-file-io', 'File I/O and metadata in C and C++', ['open', 'read', 'write', 'lseek', 'stat'], 'deep', 'Files and descriptors'),
     topic('os-fd-dup', 'dup, dup2, dup3, and descriptor inheritance', ['dup', 'dup2', 'dup3', 'redirection'], 'deep', 'Files and descriptors'),
     topic('os-fcntl', 'fcntl, descriptor flags, locks, and ioctl', ['fcntl', 'FD_CLOEXEC', 'O_NONBLOCK', 'ioctl'], 'deep', 'Files and descriptors'),
     ...linuxLabTopics.slice(0, 4),
@@ -123,7 +131,7 @@ const curriculumUnordered = [
     topic('os-signals', 'Signals, masks, timers, and safe handlers', ['signal', 'sigaction', 'sigprocmask', 'SIGALRM'], 'deep', 'Signals and asynchronous events'),
     ...linuxLabTopics.slice(13, 17),
 
-    topic('os-linux-sockets', 'TCP and UDP sockets in C', ['socket', 'TCP', 'UDP', 'partial I/O'], 'deep', 'Linux networking'),
+    topic('os-linux-sockets', 'TCP and UDP sockets in C and C++', ['socket', 'TCP', 'UDP', 'partial I/O'], 'deep', 'Linux networking'),
     ...linuxLabTopics.slice(17, 19),
 
     topic('os-threads', 'Threads and context switching', ['thread', 'scheduler', 'context switch'], 'standard', 'Threads and synchronization'),
@@ -323,6 +331,12 @@ const curriculumUnordered = [
     topic('dsa-bitwise', 'Bitwise patterns and bitmasks', ['bitmask', 'shift', 'XOR'], 'deep'),
     ...collegeDsaLabTopics,
   ]),
+  section(
+    'qualcomm-prep',
+    'Qualcomm Prep',
+    'Every prompt from the 42-file Qualcomm folder, deduplicated, corrected, and taught in interview order.',
+    qualcommPrepTopics,
+  ),
 ];
 
 const sectionOrder = [
@@ -337,6 +351,7 @@ const sectionOrder = [
   'embedded',
   'stm32',
   'rtos',
+  'qualcomm-prep',
 ];
 
 export const curriculum = [...curriculumUnordered].sort(
