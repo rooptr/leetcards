@@ -57,6 +57,11 @@ const asCpp20PosixSource = (source) => source
   .replace('char *stage1[] =', 'const char *stage1[] =')
   .replace('char *stage2[] =', 'const char *stage2[] =')
   .replace('char **commands[] =', 'const char **commands[] =')
+  .replace('#include <signal.h>', '#include <signal.h>\n#include <string.h>')
+  .replace(
+    'struct sigaction action = {0};',
+    'struct sigaction action;\n    memset(&action, 0, sizeof action);',
+  )
   .replaceAll(
     'struct shared_data *data = map_object(fd);',
     'struct shared_data *data = (struct shared_data *)map_object(fd);',
