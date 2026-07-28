@@ -1442,11 +1442,11 @@ static int run_server(int port) {
     if (setsockopt(listener, SOL_SOCKET, SO_REUSEADDR, &one, sizeof one) < 0) {
         perror("setsockopt"); return EXIT_FAILURE;
     }
-    struct sockaddr_in address = {
-        .sin_family = AF_INET,
-        .sin_port = htons((uint16_t)port),
-        .sin_addr = { .s_addr = htonl(INADDR_LOOPBACK) }
-    };
+    struct sockaddr_in address;
+    memset(&address, 0, sizeof address);
+    address.sin_family = AF_INET;
+    address.sin_port = htons((uint16_t)port);
+    address.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
     if (bind(listener, (struct sockaddr *)&address, sizeof address) < 0 ||
         listen(listener, 4) < 0) {
         perror("bind/listen"); return EXIT_FAILURE;
@@ -1469,11 +1469,11 @@ static int run_server(int port) {
 static int run_client(int port, const char *request) {
     int fd = socket(AF_INET, SOCK_STREAM, 0);
     if (fd < 0) { perror("socket"); return EXIT_FAILURE; }
-    struct sockaddr_in address = {
-        .sin_family = AF_INET,
-        .sin_port = htons((uint16_t)port),
-        .sin_addr = { .s_addr = htonl(INADDR_LOOPBACK) }
-    };
+    struct sockaddr_in address;
+    memset(&address, 0, sizeof address);
+    address.sin_family = AF_INET;
+    address.sin_port = htons((uint16_t)port);
+    address.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
     if (connect(fd, (struct sockaddr *)&address, sizeof address) < 0) {
         perror("connect"); return EXIT_FAILURE;
     }
