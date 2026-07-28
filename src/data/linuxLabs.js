@@ -1445,7 +1445,7 @@ static int run_server(int port) {
     struct sockaddr_in address = {
         .sin_family = AF_INET,
         .sin_port = htons((uint16_t)port),
-        .sin_addr.s_addr = htonl(INADDR_LOOPBACK)
+        .sin_addr = { .s_addr = htonl(INADDR_LOOPBACK) }
     };
     if (bind(listener, (struct sockaddr *)&address, sizeof address) < 0 ||
         listen(listener, 4) < 0) {
@@ -1472,7 +1472,7 @@ static int run_client(int port, const char *request) {
     struct sockaddr_in address = {
         .sin_family = AF_INET,
         .sin_port = htons((uint16_t)port),
-        .sin_addr.s_addr = htonl(INADDR_LOOPBACK)
+        .sin_addr = { .s_addr = htonl(INADDR_LOOPBACK) }
     };
     if (connect(fd, (struct sockaddr *)&address, sizeof address) < 0) {
         perror("connect"); return EXIT_FAILURE;
