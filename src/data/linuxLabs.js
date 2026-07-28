@@ -447,9 +447,10 @@ int main(void) {
 
     int reaped = 0;
     while (reaped < child_count) {
-        struct pollfd watch = {0};
+        struct pollfd watch;
         watch.fd = signal_pipe[0];
         watch.events = POLLIN;
+        watch.revents = 0;
         int ready;
         do ready = poll(&watch, 1, 2000); while (ready < 0 && errno == EINTR);
         if (ready <= 0) {
