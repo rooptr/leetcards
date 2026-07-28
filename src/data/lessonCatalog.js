@@ -57,6 +57,10 @@ const asCpp20PosixSource = (source) => source
   .replace('char *stage1[] =', 'const char *stage1[] =')
   .replace('char *stage2[] =', 'const char *stage2[] =')
   .replace('char **commands[] =', 'const char **commands[] =')
+  .replaceAll(
+    'struct shared_data *data = map_object(fd);',
+    'struct shared_data *data = (struct shared_data *)map_object(fd);',
+  )
   .replace(
     'execvp(commands[stage][0], commands[stage]);',
     'execvp(commands[stage][0], const_cast<char *const *>(commands[stage]));',
