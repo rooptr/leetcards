@@ -796,6 +796,7 @@ int main(void) {
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/wait.h>
 #include <unistd.h>
 
@@ -1301,6 +1302,7 @@ int main(int argc, char **argv) {
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/wait.h>
 #include <unistd.h>
 
@@ -1310,13 +1312,14 @@ static volatile sig_atomic_t notifications = 0;
 static void on_sigchld(int signal_number) {
     (void)signal_number;
     child_event = 1;
-    notifications++;
+    notifications = notifications + 1;
 }
 
 int main(void) {
     int gate[2];
     if (pipe(gate) < 0) { perror("pipe"); return EXIT_FAILURE; }
-    struct sigaction action = {0};
+    struct sigaction action;
+    memset(&action, 0, sizeof action);
     action.sa_handler = on_sigchld;
     action.sa_flags = SA_RESTART;
     if (sigemptyset(&action.sa_mask) < 0 || sigaction(SIGCHLD, &action, NULL) < 0) {
