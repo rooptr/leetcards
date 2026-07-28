@@ -53,6 +53,10 @@ const asCpp20PosixSource = (source) => source
     'struct task *task = calloc(1, sizeof *task);',
     'struct task *task = (struct task *)calloc(1, sizeof *task);',
   )
+  .replace(
+    'struct task *task = opaque;',
+    'struct task *task = (struct task *)opaque;',
+  )
   .replace('char *stage0[] =', 'const char *stage0[] =')
   .replace('char *stage1[] =', 'const char *stage1[] =')
   .replace('char *stage2[] =', 'const char *stage2[] =')
