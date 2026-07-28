@@ -408,6 +408,7 @@ int main(void) {
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/wait.h>
 #include <unistd.h>
 
@@ -430,7 +431,8 @@ int main(void) {
     if (pipe(signal_pipe) < 0) fail("pipe");
     int flags = fcntl(signal_pipe[1], F_GETFL);
     if (flags < 0 || fcntl(signal_pipe[1], F_SETFL, flags | O_NONBLOCK) < 0) fail("fcntl");
-    struct sigaction action = {0};
+    struct sigaction action;
+    memset(&action, 0, sizeof action);
     action.sa_handler = on_sigchld;
     if (sigemptyset(&action.sa_mask) < 0) fail("sigemptyset");
     action.sa_flags = SA_RESTART;
@@ -445,7 +447,9 @@ int main(void) {
 
     int reaped = 0;
     while (reaped < child_count) {
-        struct pollfd watch = { .fd = signal_pipe[0], .events = POLLIN };
+        struct pollfd watch = {0};
+        watch.fd = signal_pipe[0];
+        watch.events = POLLIN;
         int ready;
         do ready = poll(&watch, 1, 2000); while (ready < 0 && errno == EINTR);
         if (ready <= 0) {
