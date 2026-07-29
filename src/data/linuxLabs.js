@@ -1948,7 +1948,8 @@ int main(int argc, char **argv) {
         tasks[worker] = (struct task){
             .a = a, .b = b, .c = parallel, .m = m, .k = k, .n = n,
             .row_begin = worker * m / worker_count,
-            .row_end = (worker + 1) * m / worker_count
+            .row_end = (worker + 1) * m / worker_count,
+            .overflow = 0
         };
         int error = pthread_create(&threads[worker], NULL, multiply_rows, &tasks[worker]);
         if (error != 0) { errno = error; perror("pthread_create"); return EXIT_FAILURE; }
