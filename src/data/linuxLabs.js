@@ -1811,7 +1811,10 @@ int main(void) {
             .values = values,
             .begin = i * count / THREADS,
             .end = (i + 1) * count / THREADS,
-            .shared = &shared
+            .local_sum = 0,
+            .local_maximum = INT_MIN,
+            .shared = &shared,
+            .error = 0
         };
         int error = pthread_create(&threads[i], NULL, worker, &tasks[i]);
         if (error != 0) { errno = error; perror("pthread_create"); return EXIT_FAILURE; }
